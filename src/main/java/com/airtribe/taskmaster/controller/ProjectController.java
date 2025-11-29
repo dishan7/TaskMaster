@@ -8,9 +8,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 public class ProjectController {
@@ -27,5 +27,24 @@ public class ProjectController {
         return ResponseEntity.status(200).body(project);
     }
 
+    @GetMapping("/inviteUserToProject")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<String> inviteUserToProject(@RequestParam(name = "projectId") Long projectId,
+                                                       @RequestParam(name = "userId") Long userId){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        String verificationTokenString = UUID.randomUUID().toString();
+        _projectService.inviteUserToProject(userId, verificationTokenString);
+        String verificationUrl = "http://localhost:9010/acceptInvite?projectId=" + projectId + "&verificationToken=" + verificationTokenString;
+        System.out.println(verificationUrl);
+        return ResponseEntity.status(200).body("Invite Sent");
+    }
 
+    @PutMapping("/acceptInvite")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<Project> acceptInvite(@RequestParam(name = "projectId") Long projectId,
+                                                @RequestParam(name = "verificationToken") String verificationToken) throws Exception {
+        Project project = _projectService.acceptInvite(projectId, verificationToken);
+        return ResponseEntity.status(200).body(project);
+    }
 }
