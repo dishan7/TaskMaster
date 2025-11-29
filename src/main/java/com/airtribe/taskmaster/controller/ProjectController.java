@@ -27,6 +27,7 @@ public class ProjectController {
         return ResponseEntity.status(200).body(project);
     }
 
+    //KAFKA or = MQs can be used to send notifications to the invited users
     @GetMapping("/inviteUserToProject")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<String> inviteUserToProject(@RequestParam(name = "projectId") Long projectId,
